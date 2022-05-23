@@ -1,0 +1,7 @@
+﻿  Application.cpp
+E:\Projects\Programming\SnakeAI\SnakeAI\SnakeAI\src\SnakeGame.h(26,7): warning C4838: conversion from 'int' to 'unsigned int' requires a narrowing conversion
+E:\Projects\Programming\SnakeAI\SnakeAI\SnakeAI\src\SnakeGame.h(28,10): warning C4838: conversion from 'int' to 'unsigned int' requires a narrowing conversion
+E:\Projects\Programming\SnakeAI\SnakeAI\SnakeAI\src\SnakeGame.h(153,59): warning C4244: 'argument': conversion from 'float' to 'unsigned int', possible loss of data
+E:\Projects\Programming\SnakeAI\SnakeAI\SnakeAI\src\Application.cpp(154,8): warning C4102: 'std': unreferenced label
+E:\Projects\Programming\SnakeAI\SnakeAI\SnakeAI\src\Application.cpp(70,12): warning C4101: 'buffer': unreferenced local variable
+  SnakeAI.vcxproj -> E:\Projects\Programming\SnakeAI\SnakeAI\Debug\SnakeAI.exe
