@@ -3,6 +3,7 @@
 #include <iostream>
 #include "BoardRender.h"
 #include "SnakeGame.h"
+#include "AIPlayer.hpp"
 
 static unsigned int CompileShader(unsigned int type, const std::string& source) {
     unsigned int id = glCreateShader(type);
@@ -73,21 +74,34 @@ int main(void)
     #version 330 core
     
     layout (location = 0) in int state;
+    out vec4 color;
     void main(){
-          gl_Position =  vec4( ( float(mod(gl_VertexID, 64.0)) / 64.0 * 1.5) - 0.75,
-                               ( float(floor(float(gl_VertexID / 64.0) )) / 64.0 * 1.5 ) - 0.75, 0, 1);
-        if(state == 1) gl_PointSize = 8;
+        gl_Position =  vec4( ( mod(gl_VertexID, 32.0) / 32.0 * 1.5) - 0.75,
+                               ( float(floor(float(gl_VertexID / 32.0) )) / 32.0 * 1.5 ) - 0.75, 0, 1);
+        if(state == 1) {
+            gl_PointSize = 17;
+            color = vec4(1, 0, 0, 1);
+        }
+        else if(state == 2){
+            gl_PointSize = 17;
+            color = vec4(1, 1, 0, 1);
+        }
+        else if(state ==3){
+            gl_PointSize = 17;
+            color = vec4(0, 1, 1, 1);
+        }
         else gl_PointSize = 0;
     }
     )glsl";
 
     std::string fragmentShader = R"glsl(
     #version 330 core
-
+    
+    in vec4 color;
     out vec4 fragColor;
 
     void main(){
-        fragColor = vec4(1.0, 0, 0, 1);
+        fragColor = color;
     }
     )glsl";
 
@@ -106,6 +120,8 @@ int main(void)
 
     Board boardGame = Board();
     int state;
+
+    AIPlayer player = AIPlayer();
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window) && !boardGame.isDead)
     {
@@ -120,16 +136,17 @@ int main(void)
             timeSinceLastFrame = 0;
 
             // std::cout << "making a new frame" << std::endl;
+            Direction input = player.GetDecision(boardState);
 
-
-            state = glfwGetKey(window, GLFW_KEY_RIGHT);
+            boardGame.SetDirection(input);
+            /*state = glfwGetKey(window, GLFW_KEY_RIGHT);
             if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Right);
             state = glfwGetKey(window, GLFW_KEY_LEFT);
             if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Left);
             state = glfwGetKey(window, GLFW_KEY_UP);
             if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Up);
             state = glfwGetKey(window, GLFW_KEY_DOWN);
-            if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Down);
+            if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Down);*/
 
             boardGame.MoveOneFrameForward();
             boardGame.SetStates(boardState);
