@@ -1,6 +1,5 @@
 #include "AIPlayer.hpp"
 #include <math.h>
-#include <random>
 
 const int STATES[3] = { 1, 2, 3 };
 const Direction DECISIONS[4] = { Direction::Right, Direction::Left, Direction::Up, Direction::Down };
@@ -23,7 +22,7 @@ Direction AIPlayer::GetDecision(int(&boardState)[BOARD_PIXEL_COUNT])
     float layer2Activation[numNeuronsLayer2];
     float outputLayerActivation[numOutputNeurons];
     float currSum;
-    for (int i = 0; i < numNeuronsLayer1; i ++) {
+    for (int i = 0; i < numNeuronsLayer1; i++) {
         currSum = 0;
         for (int j = 0; j < BOARD_PIXEL_COUNT * 3; j++) {
             currSum += (boardState[j / 3] == STATES[j % 3] ? 1.0 : 0) * layer1Weight[j];
@@ -69,24 +68,66 @@ Direction AIPlayer::GetDecision(int(&boardState)[BOARD_PIXEL_COUNT])
 
 AIPlayer::AIPlayer()
 {
-    std::uniform_real_distribution<> dist(-1, 1);
+    distInit = std::uniform_real_distribution<>(-10, 10);
+    distMutation = std::normal_distribution<>(0, 10);
     for (auto& weight : layer1Weight) {
-        weight = dist(rng);
+        weight = float(rng()) / 0xFFFFFFFF - 0x8FFFFFFF;
     }
     for (auto& weight : layer2Weight) {
-        weight = dist(rng);
+        weight = float(rng()) / 0xFFFFFFFF - 0x8FFFFFFF;
     }
     for (auto& weight : outputLayerWeight) {
-        weight = dist(rng);
+        weight = float(rng()) / 0xFFFFFFFF - 0x8FFFFFFF;
     }
 
     for (auto& weight : layer1Bias) {
-        weight = dist(rng);
+        weight = float(rng()) / 0xFFFFFFFF - 0x8FFFFFFF;
     }
     for (auto& weight : layer2Bias) {
-        weight = dist(rng);
+        weight = float(rng()) / 0xFFFFFFFF - 0x8FFFFFFF;
     }
     for (auto& weight : outputLayerBias) {
-        weight = dist(rng);
+        weight = float(rng()) / 0xFFFFFFFF - 0x8FFFFFFF;
+    }
+}
+
+//AIPlayer::SetParams( std::unique_ptr<std::array<float, BOARD_PIXEL_COUNT * 3 * numNeuronsLayer1>> layer1Weight,
+//                    std::unique_ptr<std::array<float, numNeuronsLayer1* numNeuronsLayer2>> layer2Weight,
+//                    std::unique_ptr<std::array<float, numNeuronsLayer2* numOutputNeurons>> outputLayerWeight,
+//                    std::unique_ptr<std::array<float, numNeuronsLayer1>> layer1Bias,
+//                    std::unique_ptr<std::array<float, numNeuronsLayer2>> layer2Bias,
+//                    std::unique_ptr<std::array<float, numOutputNeurons>> outputLayerBias)
+//{   
+//
+//    this->layer1Weight = std::make_unique<std::array<float, BOARD_PIXEL_COUNT * 3 * numNeuronsLayer1>>(layer1Weight.release());
+//    this->layer2Weight = std::make_unique<std::array<float, numNeuronsLayer1* numNeuronsLayer2>>(layer2Weight.release());
+//    this->outputLayerWeight = std::make_unique<std::array<float, numNeuronsLayer2* numOutputNeurons>>(outputLayerWeight.release());
+//
+//    this->layer1Bias = std::make_unique<std::array<float, numNeuronsLayer1>>(layer1Bias.release());
+//    this->layer2Bias = std::make_unique<std::array<float, numNeuronsLayer2>>(layer2Bias.release());
+//    this->outputLayerBias = std::make_unique<std::array<float, numOutputNeurons>>(outputLayerBias.release());
+//
+//}
+
+void AIPlayer::ConvertToChild(const AIPlayer& player)
+{   
+
+    RandomiseValues< BOARD_PIXEL_COUNT * 3 * numNeuronsLayer1>(this->layer1Weight, player.layer1Weight);
+    RandomiseValues< numNeuronsLayer1* numNeuronsLayer2>(this->layer2Weight, player.layer2Weight);
+    RandomiseValues< numNeuronsLayer2* numOutputNeurons>(this->outputLayerWeight, player.outputLayerWeight);
+    RandomiseValues< numNeuronsLayer1 >(this->layer1Bias, player.layer1Bias);
+    RandomiseValues< numNeuronsLayer2 >(this->layer2Bias, player.layer2Bias);
+    RandomiseValues< numOutputNeurons >(this->outputLayerBias, player.outputLayerBias);
+}
+
+template<int N>
+void AIPlayer::RandomiseValues(std::array<float, N>& toFill, const std::array<float, N>& toUse){
+    for (int i = 0; i < N; i++) {
+        if (rng() % 3 != 0) {
+            toFill[i] = toUse[i] + distMutation(rng);
+        }
+        else {
+            toFill[i] = toUse[i];
+        }
     }
 }

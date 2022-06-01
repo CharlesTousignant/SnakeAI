@@ -5,6 +5,8 @@
 #include "SnakeGame.h"
 #include "AIPlayer.hpp"
 
+#define TURNS_DONE_WEIGHT 0
+#define FRUITS_EATEN_WEIGHT 100
 static unsigned int CompileShader(unsigned int type, const std::string& source) {
     unsigned int id = glCreateShader(type);
     const char* src = source.c_str();
@@ -68,7 +70,6 @@ int main(void)
 
     std::cout << glGetString(GL_VERSION) << std::endl;
 
-    GLuint buffer;
 
     std::string vertexShader = R"glsl(
     #version 330 core
@@ -119,9 +120,12 @@ int main(void)
 
 
     Board boardGame = Board();
-    int state;
 
-    AIPlayer player = AIPlayer();
+    int currPlayer = 0;
+    std::vector<AIPlayer> players = std::vector<AIPlayer>(25);
+    int bestPlayer = 0;
+    int bestScore = 0;
+    int currScore = 0;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window) && !boardGame.isDead)
     {
@@ -129,16 +133,15 @@ int main(void)
         currTime = glfwGetTime();
         timeSinceLastFrame += currTime - lastTime;
         lastTime = currTime;
-        if (timeSinceLastFrame >= 0.25) {
+        int currGen = 0;
+        if (timeSinceLastFrame >= 0) {
             /* Render here */
             glClear(GL_COLOR_BUFFER_BIT);
 
             timeSinceLastFrame = 0;
 
             // std::cout << "making a new frame" << std::endl;
-            Direction input = player.GetDecision(boardState);
-
-            boardGame.SetDirection(input);
+            
             /*state = glfwGetKey(window, GLFW_KEY_RIGHT);
             if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Right);
             state = glfwGetKey(window, GLFW_KEY_LEFT);
@@ -150,12 +153,44 @@ int main(void)
 
             boardGame.MoveOneFrameForward();
             boardGame.SetStates(boardState);
+            RenderBoard(boardState);
+
+            if (boardGame.isDead) {
+                if (currPlayer >= players.size() - 1) {
+                    std::cout << "Making Generation " << currGen++ <<" , using player #" << bestPlayer << std::endl;
+                    AIPlayer bestPlayerRef = players[bestPlayer];
+                    for (auto& player : players) {
+                        player.ConvertToChild(bestPlayerRef);
+                    }
+                    currPlayer = 0;
+                    bestPlayer = 0;
+                    bestScore = 0;
+                }
+                else {
+                    std::cout << "Player #" << currPlayer << " died." << std::endl;
+                    if (boardGame.FruitsEaten != 0) {
+                        std::cout << " yay" << std::endl;
+                    }
+                    currScore = boardGame.turnsDone * TURNS_DONE_WEIGHT + boardGame.FruitsEaten * FRUITS_EATEN_WEIGHT;
+                    if (currScore > bestScore) {
+                        bestScore = currScore;
+                        bestPlayer = currPlayer;
+                    }
+                    currPlayer++;
+                }
+                boardGame = Board();
+            }
+            else {
+                Direction input = players[currPlayer].GetDecision(boardState);
+
+                boardGame.SetDirection(input);
+            }
 
             /*for (auto& state : boardState) {
                 state = 0;
             }
             boardState[currIndexPoint++] = 1;*/
-            RenderBoard(boardState);
+            
 
             /* Swap front and back buffers */
             glfwSwapBuffers(window);
