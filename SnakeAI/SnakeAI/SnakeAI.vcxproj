@@ -145,11 +145,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\AIPlayer.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\BoardRender.cpp" />
     <ClCompile Include="src\SnakeGame.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\AIPlayer.hpp" />
     <ClInclude Include="src\BoardRender.h" />
     <ClInclude Include="src\SnakeGame.h" />
   </ItemGroup>

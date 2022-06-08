@@ -5,8 +5,9 @@
 #include "SnakeGame.h"
 #include "AIPlayer.hpp"
 
-#define TURNS_DONE_WEIGHT 0
-#define FRUITS_EATEN_WEIGHT 100
+#define TURNS_DONE_WEIGHT 1
+#define FRUITS_EATEN_WEIGHT 200
+#define GEN_SIZE 1000
 static unsigned int CompileShader(unsigned int type, const std::string& source) {
     unsigned int id = glCreateShader(type);
     const char* src = source.c_str();
@@ -77,8 +78,8 @@ int main(void)
     layout (location = 0) in int state;
     out vec4 color;
     void main(){
-        gl_Position =  vec4( ( mod(gl_VertexID, 32.0) / 32.0 * 1.5) - 0.75,
-                               ( float(floor(float(gl_VertexID / 32.0) )) / 32.0 * 1.5 ) - 0.75, 0, 1);
+        gl_Position =  vec4( ( mod(gl_VertexID, 16.0) / 16.0 * 1.5) - 0.75,
+                               ( float(floor(float(gl_VertexID / 16.0) )) / 16.0 * 1.5 ) - 0.75, 0, 1);
         if(state == 1) {
             gl_PointSize = 17;
             color = vec4(1, 0, 0, 1);
@@ -122,10 +123,13 @@ int main(void)
     Board boardGame = Board();
 
     int currPlayer = 0;
-    std::vector<AIPlayer> players = std::vector<AIPlayer>(25);
+    std::vector<AIPlayer> players = std::vector<AIPlayer>(GEN_SIZE);
+    int secondBestPlayer = 0;
     int bestPlayer = 0;
     int bestScore = 0;
     int currScore = 0;
+    int currGen = 0;
+    bool neverReachedFruit = true;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window) && !boardGame.isDead)
     {
@@ -133,46 +137,60 @@ int main(void)
         currTime = glfwGetTime();
         timeSinceLastFrame += currTime - lastTime;
         lastTime = currTime;
-        int currGen = 0;
-        if (timeSinceLastFrame >= 0) {
+
+        //if (timeSinceLastFrame >= 0) {
             /* Render here */
             glClear(GL_COLOR_BUFFER_BIT);
 
             timeSinceLastFrame = 0;
 
             // std::cout << "making a new frame" << std::endl;
-            
-            /*state = glfwGetKey(window, GLFW_KEY_RIGHT);
-            if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Right);
-            state = glfwGetKey(window, GLFW_KEY_LEFT);
-            if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Left);
-            state = glfwGetKey(window, GLFW_KEY_UP);
-            if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Up);
-            state = glfwGetKey(window, GLFW_KEY_DOWN);
-            if (state == GLFW_PRESS) boardGame.SetDirection(Direction::Down);*/
+            //int state;
+            //state = glfwGetKey(window, GLFW_KEY_RIGHT);
+            //if (state == GLFW_PRESS) boardGame.SetDirectionTurn(DirectionTurn::RightTurn);
+            //state = glfwGetKey(window, GLFW_KEY_LEFT);
+            //if (state == GLFW_PRESS) boardGame.SetDirectionTurn(DirectionTurn::LeftTurn);
+
 
             boardGame.MoveOneFrameForward();
             boardGame.SetStates(boardState);
-            RenderBoard(boardState);
-
-            if (boardGame.isDead) {
+            if (currPlayer == 0 && currGen % 100 == 0) {
+                RenderBoard(boardState);
+                glfwSwapBuffers(window);
+                
+            }
+            
+            if (boardGame.isDead || (boardGame.turnsSinceLastFruit > 200)) {
                 if (currPlayer >= players.size() - 1) {
-                    std::cout << "Making Generation " << currGen++ <<" , using player #" << bestPlayer << std::endl;
-                    AIPlayer bestPlayerRef = players[bestPlayer];
-                    for (auto& player : players) {
-                        player.ConvertToChild(bestPlayerRef);
+                    std::cout << "Making Generation " << currGen <<" , using player #" << bestPlayer << "and player #" << secondBestPlayer << std::endl;
+                    currGen++;
+                    if (bestScore <= 201) {
+                        players = std::vector<AIPlayer>(GEN_SIZE);
+                    }
+                    else {
+                        neverReachedFruit = false;
+                        for (auto& player : players) {
+                            player.ConvertToChild(players[bestPlayer], players[secondBestPlayer]);
+                        }
                     }
                     currPlayer = 0;
                     bestPlayer = 0;
                     bestScore = 0;
                 }
                 else {
-                    std::cout << "Player #" << currPlayer << " died." << std::endl;
+                    //std::cout << "Player #" << currPlayer << " died." << std::endl;
                     if (boardGame.FruitsEaten != 0) {
-                        std::cout << " yay" << std::endl;
+                        //std::cout << " yay" << std::endl;
                     }
-                    currScore = boardGame.turnsDone * TURNS_DONE_WEIGHT + boardGame.FruitsEaten * FRUITS_EATEN_WEIGHT;
-                    if (currScore > bestScore) {
+                    currScore = boardGame.turnsSinceLastFruit * TURNS_DONE_WEIGHT + boardGame.FruitsEaten * FRUITS_EATEN_WEIGHT;
+                    if (currScore >= bestScore) {
+                        if (bestScore == 0) {
+                            secondBestPlayer = currPlayer;
+                        }
+                        else {
+                            secondBestPlayer = bestPlayer;
+                        }
+                        
                         bestScore = currScore;
                         bestPlayer = currPlayer;
                     }
@@ -181,11 +199,14 @@ int main(void)
                 boardGame = Board();
             }
             else {
-                Direction input = players[currPlayer].GetDecision(boardState);
+                    Direction input = players[currPlayer].GetDecision(boardState, boardGame);
 
-                boardGame.SetDirection(input);
+                    boardGame.SetDirection(input);
+                 //DirectionTurn input = players[currPlayer].GetDecision(boardState, boardGame);
+
+                 //boardGame.SetDirectionTurn(input);
             }
-
+            
             /*for (auto& state : boardState) {
                 state = 0;
             }
@@ -193,8 +214,8 @@ int main(void)
             
 
             /* Swap front and back buffers */
-            glfwSwapBuffers(window);
-        }
+            
+        //}
         
 
 
