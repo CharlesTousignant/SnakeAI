@@ -12,5 +12,8 @@ Every frame, the AI is given the state of the board, with which it constructs it
 
 ## Results
 
-The Ai Players don't really get anywhere close to beating the game, but they do get pretty decent. This was after a few minutes of training:
+The Ai Players don't really get anywhere close to beating the game, but they do get pretty decent.  
+
+This was after a few minutes of training:
+
 ![AI Player Gameplay](./Ressources/AIPlayer_Gameplay.gif).
