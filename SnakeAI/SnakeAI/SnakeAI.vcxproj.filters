@@ -27,15 +27,21 @@
     <ClCompile Include="src\AIPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\OpenGlSetup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\BoardRender.h">
+    <ClInclude Include="src\BoardRender.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\SnakeGame.h">
+    <ClInclude Include="src\SnakeGame.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\AIPlayer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OpenGlSetup.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

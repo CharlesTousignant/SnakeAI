@@ -5,8 +5,7 @@
 const int VIEW_INFO[3] = { 0, 1, 2 };
 //const DirectionTurn DECISIONS[3] = {DirectionTurn::Forward, DirectionTurn::RightTurn, DirectionTurn::LeftTurn};
 const Direction DECISIONS[4] = { Direction::Right, Direction::Left, Direction::Up, Direction::Down };
-std::random_device rd;
-static std::mt19937 rng(rd());
+static std::mt19937 rng;
 
 
 
@@ -20,7 +19,7 @@ const Vec2D VIEW_VECTORS[8] = {
     {0, -1},
     {1, -1},
 };
-float ReLU(float x) {
+double ReLU(double x) {
     if (x > 0) {
         return x;
     }
@@ -29,12 +28,12 @@ float ReLU(float x) {
     }
 }
 
-float sigmoid(float x) {
-    return 1 / (1 + exp(-x));
+double sigmoid(double x) {
+    return 1 / (1 + exp(std::max(-10.0, std::min( - x, 10.0))));
 }
 
-SnakeViewState AIPlayer::GetView(int(&boardState)[BOARD_PIXEL_COUNT], Board& board) {
-    SnakeViewState boardView;
+SnakeViewState AIPlayer::GetView( Board& board) const {
+    SnakeViewState boardView{};
     Vec2D currViewDir;
     Position currPos;
     for (int i = 0; i < 8; i++) {
@@ -56,19 +55,16 @@ SnakeViewState AIPlayer::GetView(int(&boardState)[BOARD_PIXEL_COUNT], Board& boa
                         break;
                     }
                 }
-
                 if (j == 1) {
                     if (currPos == board.currentFruit.position) {
                         boardView.directions[i][j] = stepsTaken;
                     }
                 }
-
                 if (j == 2) {
                     if (!Board::IsOnBorder(currPos)) {
                         boardView.directions[i][j] = stepsTaken;
                     }
                 }
-
                 stepsTaken++;
             }
 
@@ -77,17 +73,17 @@ SnakeViewState AIPlayer::GetView(int(&boardState)[BOARD_PIXEL_COUNT], Board& boa
     return boardView;
 }
 
-Direction AIPlayer::GetDecision(int(&boardState)[BOARD_PIXEL_COUNT], Board& board)
+Direction AIPlayer::GetDecision(Board& board) const
 {   
-    auto view = GetView(boardState, board);
-    float layer1Activation[numNeuronsLayer1];
-    float layer2Activation[numNeuronsLayer2];
-    float outputLayerActivation[numOutputNeurons];
-    float currSum;
+    auto view = GetView( board);
+    double layer1Activation[numNeuronsLayer1] = {};
+    double layer2Activation[numNeuronsLayer2] = {};
+    double outputLayerActivation[numOutputNeurons] = {};
+    double currSum = 0;
     for (int i = 0; i < numNeuronsLayer1; i++) {
         currSum = 0;
         for (int j = 0; j < 8 * 3; j++) {
-            currSum += (view.directions[i][j] == VIEW_INFO[j] ? 1.0 : 0) * layer1Weight[j];
+            currSum += (view.directions[i][j] == VIEW_INFO[j] ? 1 : 0) * layer1Weight[j];
         }
         currSum += layer1Bias[i];
         layer1Activation[i] = sigmoid(currSum);
@@ -98,10 +94,10 @@ Direction AIPlayer::GetDecision(int(&boardState)[BOARD_PIXEL_COUNT], Board& boar
         for (int j = 0; j < numNeuronsLayer1; j++) {
             currSum += layer1Activation[j] * layer2Weight[j];
         }
+        currSum += layer2Bias[i];
         layer2Activation[i] = sigmoid(currSum);
     }
 
-    float softMaxSum = 0;
     for (int i = 0; i < numOutputNeurons; i++) {
         currSum = 0;
         for (int j = 0; j < numNeuronsLayer2; j++) {
@@ -109,15 +105,13 @@ Direction AIPlayer::GetDecision(int(&boardState)[BOARD_PIXEL_COUNT], Board& boar
         }
         currSum += outputLayerBias[i];
         outputLayerActivation[i] = sigmoid(currSum);
-        softMaxSum += exp(outputLayerActivation[i]);
     }
 
     int highestOutputIndex = 0;
-    float highestActivationFound = 0;
-    float currentActivation = 0;
+    double highestActivationFound = 0;
+    double currentActivation = 0;
     for (int i = 0; i < numOutputNeurons; i++) {
-        currentActivation = (outputLayerActivation[i] == 0) ? 0 : exp(outputLayerActivation[i]) / softMaxSum;
-        outputLayerActivation[i] = currentActivation;
+        currentActivation = outputLayerActivation[i];
         if (currentActivation > highestActivationFound) {
             highestActivationFound = currentActivation;
             highestOutputIndex = i;
@@ -130,8 +124,8 @@ Direction AIPlayer::GetDecision(int(&boardState)[BOARD_PIXEL_COUNT], Board& boar
 AIPlayer::AIPlayer()
 {
     distInit = std::uniform_real_distribution<>(-10, 10);
-    distMutation = std::normal_distribution<>(0, 1);
-    for (auto& weight : layer1Weight) {
+    distMutation = std::normal_distribution<>(0, 10);
+    for (double& weight : layer1Weight) {
         weight = distInit(rng);
     }
     for (auto& weight : layer2Weight) {
@@ -152,27 +146,8 @@ AIPlayer::AIPlayer()
     }
 }
 
-//AIPlayer::SetParams( std::unique_ptr<std::array<float, BOARD_PIXEL_COUNT * 3 * numNeuronsLayer1>> layer1Weight,
-//                    std::unique_ptr<std::array<float, numNeuronsLayer1* numNeuronsLayer2>> layer2Weight,
-//                    std::unique_ptr<std::array<float, numNeuronsLayer2* numOutputNeurons>> outputLayerWeight,
-//                    std::unique_ptr<std::array<float, numNeuronsLayer1>> layer1Bias,
-//                    std::unique_ptr<std::array<float, numNeuronsLayer2>> layer2Bias,
-//                    std::unique_ptr<std::array<float, numOutputNeurons>> outputLayerBias)
-//{   
-//
-//    this->layer1Weight = std::make_unique<std::array<float, BOARD_PIXEL_COUNT * 3 * numNeuronsLayer1>>(layer1Weight.release());
-//    this->layer2Weight = std::make_unique<std::array<float, numNeuronsLayer1* numNeuronsLayer2>>(layer2Weight.release());
-//    this->outputLayerWeight = std::make_unique<std::array<float, numNeuronsLayer2* numOutputNeurons>>(outputLayerWeight.release());
-//
-//    this->layer1Bias = std::make_unique<std::array<float, numNeuronsLayer1>>(layer1Bias.release());
-//    this->layer2Bias = std::make_unique<std::array<float, numNeuronsLayer2>>(layer2Bias.release());
-//    this->outputLayerBias = std::make_unique<std::array<float, numOutputNeurons>>(outputLayerBias.release());
-//
-//}
-
 void AIPlayer::ConvertToChild(const AIPlayer& player1, const AIPlayer& player2)
 {   
-
     RandomiseValues< 8 * 3 * numNeuronsLayer1>(this->layer1Weight, player1.layer1Weight, player2.layer1Weight);
     RandomiseValues< numNeuronsLayer1* numNeuronsLayer2>(this->layer2Weight, player1.layer2Weight, player2.layer2Weight);
     RandomiseValues< numNeuronsLayer2* numOutputNeurons>(this->outputLayerWeight, player1.outputLayerWeight, player2.outputLayerWeight);
@@ -182,10 +157,10 @@ void AIPlayer::ConvertToChild(const AIPlayer& player1, const AIPlayer& player2)
 }
 
 template<int N>
-void AIPlayer::RandomiseValues(std::array<float, N>& toFill, const std::array<float, N>& parent1Values, const std::array<float, N>& parent2Values){
+void AIPlayer::RandomiseValues(std::array<double, N>& toFill, const std::array<double, N>& parent1Values, const std::array<double, N>& parent2Values){
     for (int i = 0; i < N; i++) {
-        if (rng() % 2) {
-            if (rng() % 3 == 0) {
+        if (!((rng() % 3) == 0)) {
+            if (rng() % 10) {
                 toFill[i] = parent1Values[i] + distMutation(rng);
             }
             else {
@@ -193,7 +168,7 @@ void AIPlayer::RandomiseValues(std::array<float, N>& toFill, const std::array<fl
             }
         }
         else {
-            if (rng() % 3 == 0) {
+            if (rng() % 10) {
                 toFill[i] = parent2Values[i] + distMutation(rng);
             }
             else {

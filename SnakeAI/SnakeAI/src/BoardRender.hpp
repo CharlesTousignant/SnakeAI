@@ -5,4 +5,4 @@
 
 void InitRenderer();
 
-void RenderBoard(const int (&state)[BOARD_PIXEL_COUNT]);
+void RenderBoard(const int (state)[BOARD_PIXEL_COUNT]);

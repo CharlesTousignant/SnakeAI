@@ -84,7 +84,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC; WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
@@ -95,11 +95,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)SnakeAI\Dependencies\GLFW\lib-vc2022;$(SolutionDir)SnakeAI\Dependencies\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib; </AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
@@ -114,6 +116,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)SnakeAI\Dependencies\GLFW\lib-vc2022;$(SolutionDir)SnakeAI\Dependencies\GLEW\lib\Release\Win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32s.lib;glfw3.lib;opengl32.lib;User32.lib;Gdi32.lib;Shell32.lib; </AdditionalDependencies>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMT</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -148,12 +152,14 @@
     <ClCompile Include="src\AIPlayer.cpp" />
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\BoardRender.cpp" />
+    <ClCompile Include="src\OpenGlSetup.cpp" />
     <ClCompile Include="src\SnakeGame.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AIPlayer.hpp" />
-    <ClInclude Include="src\BoardRender.h" />
-    <ClInclude Include="src\SnakeGame.h" />
+    <ClInclude Include="src\BoardRender.hpp" />
+    <ClInclude Include="src\OpenGlSetup.hpp" />
+    <ClInclude Include="src\SnakeGame.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
